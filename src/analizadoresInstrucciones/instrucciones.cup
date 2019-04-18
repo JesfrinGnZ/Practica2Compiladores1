@@ -1,0 +1,92 @@
+/*--------------- 1ra Area: Codigo de Usuario -----------------------*/
+//-------> importaciones, paquetes
+
+package backend.analizadorInstrucciones;
+import java_cup.runtime.*;
+import backend.run.Run;
+
+
+parser code {:
+
+
+    // Connect this parser to a scanner!
+    public parser(AnalizadorInstrucciones lex) {
+	super(lex);
+
+    }
+
+    //Metodo al que se llama automaticamente ante algun error sintactico
+    public void syntax_error(Symbol s){        
+        System.out.println("ERROR SINTACTICO LOGIN"+s.value.toString());
+    }
+
+    //Metodo al que se llama en el momento en que ya no es posible una recuperacion de errores
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{        
+        System.out.println("ERROR SINTACTICO LOGIN"+s.value.toString());
+    }
+
+    public Double operarElementos(Double num1,Double num2,char tipoDeOperacion){
+        switch(tipoDeOperacion){
+            case '+':
+                return num1+num2;
+            case '-':
+                return num1-num2;
+            case '*':
+                return num1*num2;
+            case '/':
+                return num1/num2;
+        }
+    return 0.0;
+    }
+    
+    public Integer buscarValorDeIdentificador(String id){
+        Integer valor =Run.variablesPrograma.get(id);
+        if (valor == null){
+            System.out.println("ERROR NO EXISTE LA VARIABLE");
+            return 0;
+        }
+        return valor;
+    }
+
+
+:}
+
+
+/*--------------- 2da Area: Declaraciones -----------------------*/
+
+terminal String         IDENTIFICADOR,NUMERO,IGUAL,MAS,MENOS,POR,DIV,PARENTESIS_ABIERTO,PARENTESIS_CERRADO;
+
+non terminal Object     e,t,f;
+/*--------------- 3ra Area: Reglas Semanticas -----------------------*/
+
+start with e;
+
+e::=e:i MAS t:e
+    {:RESULT=operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'+');System.out.println("El resultado es:"+operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'+'));:};
+
+e::=e:i MENOS t:e
+    {:RESULT=operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'-');System.out.println("El resultado es:"+operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'-'));:};
+
+e::=t:i
+    {:RESULT=i;System.out.println("Valor en t:"+i);:};
+
+
+t::=t:i POR f:e
+    {:RESULT=operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'*');System.out.println("El resultado es:"+operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'*'));:};
+
+t::=t:i DIV f:e
+    {:RESULT=operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'/');System.out.println("El resultado es:"+operarElementos(Double.valueOf(i.toString()),Double.valueOf(e.toString()),'/'));:};
+
+t::=f:i
+    {:RESULT=i;:};
+
+
+
+f::=IDENTIFICADOR:i//Se debe buscar el identificador, y si se encuenra RESULT=valor de lo contrario mostrar error
+    {:RESULT=buscarValorDeIdentificador(i.toString());System.out.println("IDENTIFICADOR:"+i);:};
+
+f::=NUMERO:i
+    {:RESULT=i;System.out.println("NUMERO:"+i);:};
+
+f::=PARENTESIS_ABIERTO e:i PARENTESIS_CERRADO
+    {:RESULT=i;:};
